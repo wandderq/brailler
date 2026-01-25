@@ -21,12 +21,12 @@ Each Braille character contains up to 8 dots, allowing for a higher "resolution"
 
 ### From GitHub (using pip/pipx)
 ```bash
-pipx install git+https://github.com/wandderq/brailer@main
+pipx install git+https://github.com/wandderq/brailler@main
 ```
 
 ### From source
 ```bash
-git clone https://github.com/wandderq/brailer
+git clone https://github.com/wandderq/brailler
 cd brailer
 pip install .
 ```

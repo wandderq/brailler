@@ -123,7 +123,7 @@ class BrailleArt:
 class BraillerCLI:
     def __init__(self) -> None:
         self.argparser = ArgumentParser(
-            description="braille art generator"
+            description="braille-based art generator"
         )
         
         self.argparser.add_argument(
