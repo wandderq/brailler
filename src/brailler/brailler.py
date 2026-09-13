@@ -4,7 +4,6 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import colorlog as clg
-import numpy as np
 from PIL import Image
 
 logger = lg.getLogger('brailler')
@@ -79,42 +78,26 @@ class BrailleArt:
         return art
 
     def pixels_to_braille(self, pixel_block: list) -> str:
-        matrix = np.array([
-            [pixel_block[0], pixel_block[1]],
-            [pixel_block[2], pixel_block[3]],
-            [pixel_block[4], pixel_block[5]],
-            [pixel_block[6], pixel_block[7]],
-        ], dtype=int)
-
         braille_bits = 0
 
-        if matrix[0, 0]:
+        if pixel_block[0]:
             braille_bits |= 0b00000001
-
-        if matrix[1, 0]:
+        if pixel_block[2]:
             braille_bits |= 0b00000010
-
-        if matrix[2, 0]:
+        if pixel_block[4]:
             braille_bits |= 0b00000100
-
-        if matrix[0, 1]:
+        if pixel_block[1]:
             braille_bits |= 0b00001000
-
-        if matrix[1, 1]:
+        if pixel_block[3]:
             braille_bits |= 0b00010000
-
-        if matrix[2, 1]:
+        if pixel_block[5]:
             braille_bits |= 0b00100000
-
-        if matrix[3, 0]:
+        if pixel_block[6]:
             braille_bits |= 0b01000000
-
-        if matrix[3, 1]:
+        if pixel_block[7]:
             braille_bits |= 0b10000000
-        
-        unicode_code = 0x2800 + braille_bits
 
-        return chr(unicode_code)
+        return chr(0x2800 + braille_bits)
 
 
 class BraillerCLI:
