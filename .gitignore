@@ -1,12 +1,9 @@
-# Python-generated files
 __pycache__/
 *.py[oc]
 build/
 dist/
 wheels/
 *.egg-info
-
-# Virtual environments
 .venv
 *.py[codz]
 *$py.class
@@ -99,3 +96,4 @@ __marimo__/
 tests/
 .python-version
 uv.lock
+/test_pics/

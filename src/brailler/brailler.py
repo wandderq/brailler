@@ -1,14 +1,11 @@
+import logging as lg
+import sys
 from argparse import ArgumentParser
 from pathlib import Path
-from PIL import Image
 
 import colorlog as clg
-import logging as lg
 import numpy as np
-
-import sys
-import os
-
+from PIL import Image
 
 logger = lg.getLogger('brailler')
 logger.handlers.clear()
