@@ -1,5 +1,7 @@
 # Brailler — Braille Art Generator
 
+![assets/banner.jpg](assets/banner.jpg)
+
 **Brailler** is a command-line utility written in Python that converts any image into Braille-based text arts. (like ASCII art)
 
 Each Braille character contains up to 8 dots, allowing for a higher "resolution" compared to standard ASCII art. This makes brailler much better for creating detailed text-based graphics.
