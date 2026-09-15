@@ -1,77 +1,70 @@
 # Brailler — Braille Art Generator
 
-**Brailler** is a command-line utility written in Python that converts any image into artistic text-based representations using Braille Unicode characters instead of traditional ASCII symbols.
+**Brailler** is a command-line utility written in Python that converts any image into Braille-based text arts. (like ASCII art)
 
-Each Braille character contains up to 8 dots, allowing for a higher "resolution" compared to standard ASCII art. This makes Brailler ideal for creating detailed and accessible text-based graphics directly in your terminal or in a file.
+Each Braille character contains up to 8 dots, allowing for a higher "resolution" compared to standard ASCII art. This makes brailler much better for creating detailed text-based graphics.
 
 ---
 
 ## Features
 
 - Converts PNG/JPG images into Braille-based art
-- Adjustable output size (width × height)
+- Adjustable output size
 - Configurable binarization threshold for better contrast
-- Option to print the result directly to the console
-- Save output to a text file
+- Color inversion
 - Verbose mode for processing details
 
 ---
 
 ## Installation
-
-### From GitHub (using pip/pipx)
+### Via pip/pipx
 ```bash
 pipx install git+https://github.com/wandderq/brailler@main
 ```
 
-### From source
-```bash
-git clone https://github.com/wandderq/brailler
-cd brailer
-pip install .
-```
-
 ## Usage
-
 ### Basic example
 ```bash
-brailler image.png --print
+brailler input.jpg
 ```
 
 ### Specify output size
 ```bash
-brailler image.png --size 256x256 --print
-```
-
-### Save to a file
-```bash
-# derived from input filename
-brailler image.png --output '[input]' # image.png.txt
-
-# another name
-brailler image.png --output art.txt
+brailler input.jpg --resolution 100x50
 ```
 
 ### Adjust binarization threshold
 ```bash
-brailler image.png --threshold 200 --print
+brailler input.jpg --threshold 222 
 ```
 
+### Invert colors & change resampling algorithm
+```bash
+brailler input.jpg --resampling nearest --invert
+```
+
+
 ## Command-line arguments
-| Argument          | Description                                                                             |
-|-------------------|-----------------------------------------------------------------------------------------|
-| `input`           | Input image file (PNG/JPG)                                                              |
-| `-o, --output`    | Output text file (default: None) (can be derived from input filename using `'[input]'`) |
-| `-s, --size`      | Output dimensions in WIDTHxHEIGHT format (default: 128x64)                              |
-| `-t, --threshold` | Binarization threshold (0-255) (default: 160)                                           |
-| `-p, --print`     | Print the result to the console                                                         |
-| `-v, --verbose`   | Show detailed processing information                                                    |
+| Argument           | Description                                                 |
+|--------------------|-------------------------------------------------------------|
+| `input`            | Input image file path                                       |
+| `-r, --resolution` | Output resolution characters (format: WxH) (default: 40x18) |
+| `-t, --threshold`  | Binarization threshold (0-255) (default: 210)               |
+| `-R, --resampling` | Image resampling algorithm (default: lanczos)               |
+| `-i, --invert`     | Invert image colors                                         |
+| `-v, --verbose`    | Verbose mode (INFO and DEBUG logs)                          |
 
 ## Requirements
-- Python 3.7+
-- Pillow
-- numpy
+### Common
+- `python>=3.12`
+- `pillow>=12.1`
+- `colorlog>=6.10.1`
+
+### Build & develop
+- `ruff>=0.16.7`
+- `uv>=0.12.15`
+- `uv_build>0.11,<0.12`
 
 ## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details
+This project is licensed under the MIT License. See the [LICENSE.md](https://github.com/wandderq/brailler/blob/main/LICENSE.md) file for details
 

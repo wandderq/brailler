@@ -1,1 +1,1 @@
-- [ ] remove -o/--output and -p/--print options (print by default)
+- [x] remove -o/--output and -p/--print options (print by default)
