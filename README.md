@@ -45,6 +45,23 @@ brailler input.jpg --threshold 222
 brailler input.jpg --resampling nearest --invert
 ```
 
+### As a library
+```python
+from brailler import BrailleArtGenerator
+from PIL.Image import Resampling
+
+generator = BrailleArtGenerator(
+    "/path/to/test_image.jpg"
+)
+
+art = generator.generate(
+    resolution=(80, 40),
+    threshold=220,
+    resampling_algorithm=Resampling.BICUBIC,
+)
+
+print(art)
+```
 
 ## Command-line arguments
 | Argument           | Description                                                 |
