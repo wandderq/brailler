@@ -1,3 +1,9 @@
 - [x] remove -o/--output and -p/--print options (print by default)
 - [ ] add -V/--version option
 - [ ] add dithering support
+- [ ] add color support
+- [ ] make resizing method configurable (to save proportions)
+- [ ] review `brailler.const`
+- [ ] add more log messages
+- [ ] add argument completions
+- [ ] add more showcases to readme
