@@ -2,11 +2,12 @@
 
 ![assets/banner.jpg](assets/banner.jpg)
 
+---
+
 **Brailler** is a command-line utility written in Python that converts any image into Braille-based text arts. (like ASCII art)
 
 Each Braille character contains up to 8 dots, allowing for a higher "resolution" compared to standard ASCII art. This makes brailler much better for creating detailed text-based graphics.
 
----
 
 ## Features
 
@@ -16,13 +17,13 @@ Each Braille character contains up to 8 dots, allowing for a higher "resolution"
 - Color inversion
 - Verbose mode for processing details
 
----
 
 ## Installation
-### Via pip/pipx
+Install from github using pip/pipx
 ```bash
 pipx install git+https://github.com/wandderq/brailler@main
 ```
+
 
 ## Usage
 ### Basic example
@@ -63,6 +64,7 @@ art = generator.generate(
 print(art)
 ```
 
+
 ## Command-line arguments
 | Argument           | Description                                                 |
 |--------------------|-------------------------------------------------------------|
@@ -72,6 +74,7 @@ print(art)
 | `-R, --resampling` | Image resampling algorithm (default: lanczos)               |
 | `-i, --invert`     | Invert image colors                                         |
 | `-v, --verbose`    | Verbose mode (INFO and DEBUG logs)                          |
+
 
 ## Requirements
 ### Common
@@ -83,6 +86,7 @@ print(art)
 - `ruff>=0.16.7`
 - `uv>=0.12.15`
 - `uv_build>0.11,<0.12`
+
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE.md](https://github.com/wandderq/brailler/blob/main/LICENSE.md) file for details
