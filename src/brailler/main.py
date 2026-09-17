@@ -6,6 +6,7 @@ from pathlib import Path
 from colorlog import ColoredFormatter
 from PIL import Image
 
+from brailler import __version__
 from brailler.const import (
     DEFAULT_RESOLUTION,
     RESAMPLING_ALGORITHM_NAMES,
@@ -64,7 +65,13 @@ class BraillerCLI:
             action="store_true",
             help="Invert image colors",
         )
-        
+
+        self.argparser.add_argument(
+            "-V", "--version",
+            action="version",
+            version=__version__,
+        )
+
         self.argparser.add_argument(
             "-v", "--verbose",
             action="store_true",
