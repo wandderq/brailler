@@ -1,7 +1,7 @@
 import logging as lg
 from pathlib import Path
 
-from PIL import Image, ImageFile
+from PIL import Image
 
 
 class BrailleArtGenerator:
@@ -20,46 +20,114 @@ class BrailleArtGenerator:
         self._image: Image.Image | None = None
 
 
-    def _load_image(
+    def _get_image(
             self, *,
-            resolution: tuple[str, str],
+            resolution: tuple[int, int],
             threshold: int,
             resampling_algorithm: Image.Resampling,
             invert: bool,
         ) -> Image.Image:
+        """Load, resize and binarize image.
 
-        # loading
-        if self._image is None:
-            self.logger.info("loading image")
-            image: Image.Image = Image.open(self.image_filepath)
+        Args:
+            resolution (tuple[int, int]): target resolution (px)
+            threshold (int): binarization threshold
+            resampling_algorithm (Image.Resampling): image resampling algorithm
+            invert (bool): whether invert image colors or not
 
-            self.logger.debug("converting image to luminance mode")
-            image = image.convert("L")
+        Returns:
+            Image.Image: image
 
-            self._image = image
-        
-        else:
-            self.logger.debug("using cached image")
-            image = self._image
-        
-        # resizing
-        self.logger.debug("resizing image (resolution=%s, resampling_algorithm=%s)", resolution, resampling_algorithm.name)
-        image = image.resize(resolution, resampling_algorithm)
-
-        # binarizing
-        low, high = (0, 255) if not invert else (255, 0)
-        self.logger.debug("binarizing image (threshold=%d, invert=%d)", threshold, invert)
-        image = image.point(
-            lambda p: low if p < threshold else high,
-            mode="L",
+        """
+        image = self._load_image()
+        image = self._resize_image(
+            image=image,
+            resolution=resolution,
+            resampling_algorithm=resampling_algorithm,
         )
-
+        image = self._binarize_image(
+            image=image,
+            threshold=threshold,
+            invert=invert,
+        )
+        
         return image  # noqa: RET504
+    
+
+    def _load_image(self) -> Image.Image:
+        """Load image from self.image_filepath and cache it.
+
+        Use cached image if available
+
+        Returns:
+            Image.Image: loaded image
+
+        """
+        if self._image is not None:
+            self.logger.debug("using cached image")
+            return self._image
+
+        self.logger.info("loading image")
+        image: Image.Image = Image.open(self.image_filepath)
+
+        self.logger.debug("converting image to luminance mode")
+        image = image.convert("L")
+
+        self._image = image
+        return self._image
+        
+
+    def _resize_image(
+            self, *,
+            image: Image.Image,
+            resolution: tuple[int, int],
+            resampling_algorithm: Image.Resampling,
+        ) -> Image.Image:
+        """Resize image.
+
+        Args:
+            image (Image.Image): image
+            resolution (tuple[int, int]): target resolution (px)
+            resampling_algorithm (Image.Resampling): image resampling algorithm`
+
+        Returns:
+            Image.Image: resized image
+
+        """
+        self.logger.debug("resizing image (resolution=%s, resampling_algorithm=%s)", resolution, resampling_algorithm.name)
+        return image.resize(resolution, resampling_algorithm)
+    
+
+    def _binarize_image(
+            self, *,
+            image: Image.Image,
+            threshold: int,
+            invert: bool,
+        ) -> Image.Image:
+        """Binarize image.
+
+        Args:
+            image (Image.Image): image (mode: L)
+            threshold (int): binarization threshold
+            invert (bool): whether invert colors or not
+
+        Returns:
+            Image.Image: binarized image (mode: 1)
+
+        """
+        low, high = (0, 255) if not invert else (255, 0)
+        
+        self.logger.debug("binarizing image (threshold=%d, invert=%d)", threshold, invert)
+
+        return image.point(
+            lambda p: low if p < threshold else high,
+            mode="1",
+        )
         
 
     def generate(
             self, *,
-            resolution: tuple[str, str],
+            resolution: tuple[int, int],
             threshold: int,
             resampling_algorithm: Image.Resampling = Image.Resampling.LANCZOS,
             invert: bool = False,
@@ -67,7 +135,7 @@ class BrailleArtGenerator:
         """Generate Braille-art.
 
         Args:
-            resolution (tuple[str, str]): art resolution (in characters)
+            resolution (tuple[int, int]): art resolution (in characters)
             threshold (int): image binarization threshold
             resampling_algorithm (Image.Resampling, optional): image resampling algorithm.
                 Defaults to Image.Resampling.LANCZOS.
@@ -77,27 +145,36 @@ class BrailleArtGenerator:
             str: Braille-art
 
         """
-        resolution = (resolution[0] * 2, resolution[1] * 4)
+        resolution_px = (resolution[0] * 2, resolution[1] * 4)
 
-        image = self._load_image(
-            resolution=resolution,
+        image = self._get_image(
+            resolution=resolution_px,
             threshold=threshold,
             resampling_algorithm=resampling_algorithm,
             invert=invert,
         )
 
-        blocks = self._split_image_in_blocks(image, resolution)
+        blocks = self._split_image_in_blocks(image)
 
         return self._generate_art(blocks)
     
 
-    def _split_image_in_blocks(self, image: ImageFile.ImageFile, resolution: tuple[int, int]) -> list[list[tuple]]:
+    def _split_image_in_blocks(self, image: Image.Image) -> list[list[tuple]]:
+        """Split image in 2x4 blocks.
+
+        Args:
+            image (Image.Image): image (mode: 1)
+
+        Returns:
+            list[list[tuple]]: 2D block matrix (block: tuple len=8)
+
+        """
         self.logger.info("splitting image in blocks")
 
         blocks = []
-        for y in range(0, resolution[1], 4):
+        for y in range(0, image.height, 4):
             row = []
-            for x in range(0, resolution[0], 2):
+            for x in range(0, image.width, 2):
                 image_block = image.crop((
                     x, y, x+2, y+4,
                 ))
@@ -110,6 +187,15 @@ class BrailleArtGenerator:
     
     
     def _generate_art(self, blocks: list[list[tuple]]) -> str:
+        """Generate Braille-art from image blocks.
+
+        Args:
+            blocks (list[list[tuple]]): image blocks
+
+        Returns:
+            str: Braille-art
+
+        """
         art = ""
         blocks_len = len(blocks)
 
@@ -124,24 +210,33 @@ class BrailleArtGenerator:
                 
 
     def _block_to_braille(self, block: list) -> str:
-        braille_bits = 0
+        """Convert image block to Braille character.
 
-        if block[0]:
+        Args:
+            block (list): image block
+
+        Returns:
+            str: Braille character
+
+        """
+        braille_bits = 0x2800
+
+        if block[0]: # dot 1
             braille_bits |= 0b00000001
-        if block[2]:
+        if block[2]: # dot 2
             braille_bits |= 0b00000010
-        if block[4]:
+        if block[4]: # dot 3
             braille_bits |= 0b00000100
-        if block[1]:
+        if block[1]: # dot 4
             braille_bits |= 0b00001000
-        if block[3]:
+        if block[3]: # dot 5
             braille_bits |= 0b00010000
-        if block[5]:
+        if block[5]: # dot 6
             braille_bits |= 0b00100000
-        if block[6]:
+        if block[6]: # dot 7
             braille_bits |= 0b01000000
-        if block[7]:
+        if block[7]: # dot 8
             braille_bits |= 0b10000000
 
-        return chr(0x2800 + braille_bits)
+        return chr(braille_bits)
 

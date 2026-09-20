@@ -147,7 +147,6 @@ def _setup_logger(*, verbose: bool) -> None:
     logger.addHandler(stream_handler)
 
     
-
 def _run_cli() -> None:
     app = BraillerCLI()
     return app.run()
