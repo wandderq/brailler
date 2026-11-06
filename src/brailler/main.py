@@ -1,152 +1,152 @@
 import logging as lg
+import re
 import sys
-from argparse import ArgumentParser
+from argparse import ArgumentParser, ArgumentTypeError
 from pathlib import Path
 
 from colorlog import ColoredFormatter
-from PIL import Image
+from PIL.Image import Resampling
 
 from brailler import __version__
-from brailler.const import (
-    DEFAULT_RESOLUTION,
-    RESAMPLING_ALGORITHM_NAMES,
-    RESAMPLING_ALGORITHMS,
-    THRESHOLD_MAX,
-    THRESHOLD_MIN,
-)
 from brailler.generator import BrailleArtGenerator
 
+DEFAULT_RESOLUTION = (40, 18)
+DEFAULT_THRESHOLD = 210
+RESOLUTION_RE = re.compile(r"([0-9]+)x([0-9]+)")
 
-class BraillerCLI:
-    """Brailler command line interface."""
+logger = lg.getLogger(__name__)
 
-    def __init__(self) -> None:
-        """Initialize brailler CLI."""
-        self.argparser = ArgumentParser(
-            description="Braille-based text art generator",
-            epilog="Source: https://github.com/wandderq/brailler",
-        )
+def _build_argparser() -> ArgumentParser:
+    argparser = ArgumentParser(
+        description="braille-based text art generator",
+        epilog="source: https://github.com/wandderq/brailler",
+    )
 
-        self.logger = lg.getLogger("brailler.cli")
+    argparser.add_argument(
+        "input",
+        type=Path,
+        help="input image file path",
+    )
 
-        self._setup_args()
+    argparser.add_argument(
+        "-r", "--resolution",
+        type=_resolution,
+        default=DEFAULT_RESOLUTION,
+        help=(
+            "output resolution in characters "
+            "(format: WIDTHxHEIGHT) "
+            f"(default: {DEFAULT_RESOLUTION[0]}x{DEFAULT_RESOLUTION[1]})"
+        ),
+    )
+
+    argparser.add_argument(
+        "-t", "--threshold",
+        type=_threshold,
+        default=DEFAULT_THRESHOLD,
+        help=f"binarization threshold (0-255) (default: {DEFAULT_THRESHOLD})",
+    )
+
+    argparser.add_argument(
+        "-R", "--resampling",
+        type=_resampling,
+        default=Resampling.LANCZOS,
+        help=(
+            "resampling algorithm "
+            "(default: lanczos) "
+            f"(available: {','.join(r.name.lower() for r in Resampling)})"
+        ),
+    )
+
+    argparser.add_argument(
+        "-i", "--invert",
+        action="store_true",
+        help="invert image colors",
+    )
+
+    argparser.add_argument(
+        "-V", "--version",
+        action="version",
+        version=__version__,
+    )
+
+    argparser.add_argument(
+        "-v", "--verbose",
+        action="store_true",
+        help="verbose mode (INFO logs)",
+    )
+
+    argparser.add_argument(
+        "--debug",
+        action="store_true",
+        help="enable debug features",
+    )
     
+    return argparser
 
-    def _setup_args(self) -> None:
-        self.argparser.add_argument(
-            "input",
-            type=Path,
-            help="Input image file path",
-        )
-        
-        self.argparser.add_argument(
-            "-r", "--resolution",
-            type=self._parse_resolution,
-            default=DEFAULT_RESOLUTION,
-            help="Output resolution in characters (format: WxH) (default: 40x18)",
-        )
-        
-        self.argparser.add_argument(
-            "-t", "--threshold",
-            type=self._parse_threshold,
-            default=210,
-            help="Binarization threshold (0-255) (default: 210)",
-        )
-
-        self.argparser.add_argument(
-            "-R", "--resampling",
-            type=self._parse_resampling,
-            default=Image.Resampling.LANCZOS,
-            help=f"Image resampling algorithm (available: {RESAMPLING_ALGORITHM_NAMES}) (default: lanczos)",
-        )
-
-        self.argparser.add_argument(
-            "-i", "--invert",
-            action="store_true",
-            help="Invert image colors",
-        )
-
-        self.argparser.add_argument(
-            "-V", "--version",
-            action="version",
-            version=__version__,
-        )
-
-        self.argparser.add_argument(
-            "-v", "--verbose",
-            action="store_true",
-            help="Verbose mode (INFO and DEBUG logs)",
-        )
+def _resampling(name: str) -> Resampling:
+    try:
+        return Resampling[name.upper()]
     
+    except KeyError:
+        raise ArgumentTypeError from None
 
-    def _parse_resolution(self, resolution_str: str) -> tuple:
-        resolution = resolution_str.strip().lower().split("x")
-        if len(resolution) != 2:  # noqa: PLR2004
-            raise ValueError(resolution_str)
-        
-        if not (resolution[0].isdigit() and resolution[1].isdigit()):
-            raise ValueError(resolution_str)
-        
-        return (int(resolution[0]), int(resolution[1]))
-    
+def _resolution(string: str) -> tuple[int, int]:
+    match = RESOLUTION_RE.match(string.lower().strip())
 
-    def _parse_threshold(self, threshold: str) -> int:
-        if not threshold.isdigit():
-            raise ValueError(threshold)
-        
-        threshold = int(threshold)
-
-        if threshold < THRESHOLD_MIN or threshold > THRESHOLD_MAX:
-            raise ValueError(threshold)
-        
-        return threshold
-    
-
-    def _parse_resampling(self, resampling: str) -> Image.Resampling:
-        if resampling.lower() not in RESAMPLING_ALGORITHMS:
-            raise ValueError(resampling)
-        
-        return RESAMPLING_ALGORITHMS[resampling]
-            
-
-    def run(self) -> None:
-        """Run brailler CLI."""
-        args = self.argparser.parse_args()
-
-        _setup_logger(verbose=args.verbose)
-
-        generator = BrailleArtGenerator(args.input)
-
-        art = generator.generate(
-            resolution=args.resolution,
-            threshold=args.threshold,
-            resampling_algorithm=args.resampling,
-            invert=args.invert,
+    if match:
+        return (
+            int(match.group(1)),
+            int(match.group(2)),
         )
 
-        sys.stdout.write(art+"\n")
-        sys.stdout.flush()
+    raise ArgumentTypeError
 
+def _threshold(string: str) -> int:
+    if not string.isdigit():
+        raise ArgumentTypeError
+    
+    threshold = int(string)
 
-def _setup_logger(*, verbose: bool) -> None:
+    if threshold < 0 or threshold > 255:
+        raise ArgumentTypeError
+    
+    return threshold
+
+def _setup_logger(*, debug: bool, verbose: bool) -> None:
     logger = lg.getLogger("brailler")
-    logger.setLevel(lg.DEBUG if verbose else lg.WARNING)
+    logger.handlers.clear()
+    logger.setLevel(lg.DEBUG if debug else lg.INFO if verbose else lg.WARNING)
 
-    stream_handler = lg.StreamHandler()
+    stream_handler = lg.StreamHandler(stream=sys.stdout)
     stream_handler.setFormatter(ColoredFormatter(
-        fmt="[{log_color}{levelname}{reset} @ {name}] {message}",
-        style="{",
         log_colors={
             "DEBUG": "blue",
             "INFO": "green",
             "WARNING": "yellow",
             "ERROR": "red",
         },
+        fmt="{name}: {log_color}{message}{reset}",
+        style="{",
     ))
 
-    logger.addHandler(stream_handler)
-
+def main() -> None:
+    """Run brailler CLI."""
+    argparser = _build_argparser()
+    args = argparser.parse_args()
     
-def _run_cli() -> None:
-    app = BraillerCLI()
-    return app.run()
+    _setup_logger(debug=args.debug, verbose=args.verbose)
+
+    generator = BrailleArtGenerator(
+        image_filepath=args.input,
+        debug=args.debug,
+    )
+
+    art = generator.generate(
+        resolution=args.resolution,
+        threshold=args.threshold,
+        resampling_algorithm=args.resampling,
+        invert=args.invert,
+    )
+
+    sys.stdout.write(art + "\n")
+    sys.stdout.flush()

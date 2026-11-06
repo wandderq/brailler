@@ -1,6 +1,6 @@
 [project]
 name = "brailler"
-version = "2.1.0"
+version = "2.2.0"
 description = "Braille-based text art generator"
 readme = "README.md"
 authors = [
@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-brailler = "brailler.main:_run_cli"
+brailler = "brailler.main:main"
 
 [build-system]
 requires = ["uv_build>0.11,<0.12"]
@@ -31,5 +31,5 @@ line-length = 123
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    "CPY", "W293", "D100", "D203", "D213"
+    "CPY", "W293", "D100", "D203", "D213", "PLR2004"
 ]

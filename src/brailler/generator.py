@@ -3,22 +3,26 @@ from pathlib import Path
 
 from PIL import Image
 
+logger = lg.getLogger(__name__)
 
 class BrailleArtGenerator:
     """Braille-based text art generator."""
 
-    def __init__(self, image_filepath: Path | str) -> None:
+    def __init__(self, image_filepath: Path | str, *, debug: bool = False) -> None:
         """Initialize braille art generator.
 
         Args:
             image_filepath (Path | str): input image file path
+            debug (bool): enable debug features
 
         """
-        self.logger = lg.getLogger("brailler.generator")
-
         self.image_filepath = Path(image_filepath).absolute()
         self._image: Image.Image | None = None
 
+        self.debug = debug
+        if debug:
+            self.debug_path = Path.cwd() / "debug"
+            self.debug_path.mkdir()
 
     def _get_image(
             self, *,
@@ -40,18 +44,29 @@ class BrailleArtGenerator:
 
         """
         image = self._load_image()
+        if self.debug:
+            logger.debug("saving image, stage=load")
+            image.save(self.debug_path / "load.jpg")
+
         image = self._resize_image(
             image=image,
             resolution=resolution,
             resampling_algorithm=resampling_algorithm,
         )
+        if self.debug:
+            logger.debug("saving image, stage=resize")
+            image.save(self.debug_path / "resize.jpg")
+
         image = self._binarize_image(
             image=image,
             threshold=threshold,
             invert=invert,
         )
+        if self.debug:
+            logger.debug("saving image, stage=binarize")
+            image.save(self.debug_path / "binarize.jpg")
         
-        return image  # noqa: RET504
+        return image
     
 
     def _load_image(self) -> Image.Image:
@@ -64,13 +79,13 @@ class BrailleArtGenerator:
 
         """
         if self._image is not None:
-            self.logger.debug("using cached image")
+            logger.debug("using cached image")
             return self._image
 
-        self.logger.info("loading image")
+        logger.info("loading image")
         image: Image.Image = Image.open(self.image_filepath)
 
-        self.logger.debug("converting image to luminance mode")
+        logger.debug("converting image to luminance mode")
         image = image.convert("L")
 
         self._image = image
@@ -94,7 +109,7 @@ class BrailleArtGenerator:
             Image.Image: resized image
 
         """
-        self.logger.debug("resizing image (resolution=%s, resampling_algorithm=%s)", resolution, resampling_algorithm.name)
+        logger.debug("resizing image (resolution=%s, resampling_algorithm=%s)", resolution, resampling_algorithm.name)
         return image.resize(resolution, resampling_algorithm)
     
 
@@ -117,7 +132,7 @@ class BrailleArtGenerator:
         """
         low, high = (0, 255) if not invert else (255, 0)
         
-        self.logger.debug("binarizing image (threshold=%d, invert=%d)", threshold, invert)
+        logger.debug("binarizing image (threshold=%d, invert=%d)", threshold, invert)
 
         return image.point(
             lambda p: low if p < threshold else high,
@@ -169,7 +184,7 @@ class BrailleArtGenerator:
             list[list[tuple]]: 2D block matrix (block: tuple len=8)
 
         """
-        self.logger.info("splitting image in blocks")
+        logger.info("splitting image in blocks")
 
         blocks = []
         for y in range(0, image.height, 4):
