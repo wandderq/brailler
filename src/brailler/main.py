@@ -129,6 +129,8 @@ def _setup_logger(*, debug: bool, verbose: bool) -> None:
         style="{",
     ))
 
+    logger.addHandler(stream_handler)
+
 def main() -> None:
     """Run brailler CLI."""
     argparser = _build_argparser()

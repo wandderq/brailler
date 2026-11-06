@@ -97,3 +97,4 @@ tests/
 .python-version
 uv.lock
 /test_pics/
+debug/

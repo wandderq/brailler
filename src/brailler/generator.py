@@ -22,7 +22,7 @@ class BrailleArtGenerator:
         self.debug = debug
         if debug:
             self.debug_path = Path.cwd() / "debug"
-            self.debug_path.mkdir()
+            self.debug_path.mkdir(exist_ok=True)
 
     def _get_image(
             self, *,
