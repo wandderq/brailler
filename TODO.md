@@ -7,3 +7,4 @@
 - [ ] add more log messages
 - [ ] add argument completions
 - [ ] add more showcases to readme
+- [ ] add gif/video support
