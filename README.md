@@ -22,6 +22,11 @@ Install from github using pip/pipx
 pipx install git+https://github.com/wandderq/brailler@main
 ```
 
+## Usage
+### Basic example
+```bash
+brailler input.jpg
+```
 
 ### Specify output size
 ```bash
