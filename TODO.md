@@ -1,10 +1,11 @@
 - [x] remove -o/--output and -p/--print options (print by default)
 - [x] add -V/--version option
-- [ ] add dithering support
+- [x] add dithering support
 - [ ] add color support
-- [ ] make resizing method configurable (to save proportions)
-- [ ] review `brailler.const`
-- [ ] add more log messages
+- [ ] new --resolution features (keep exact: -r W:H; auto: -r auto:100; scale by percent: -r 50%;)
+- [x] review `brailler.const`
+- [x] add more log messages
 - [ ] add argument completions
 - [ ] add more showcases to readme
 - [ ] add gif/video support
+- [ ] auto threshold (Otsu's method, triangle method, Yen method)

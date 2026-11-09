@@ -1,6 +1,6 @@
 [project]
 name = "brailler"
-version = "2.2.0"
+version = "2.3.0"
 description = "Braille-based text art generator"
 readme = "README.md"
 authors = [

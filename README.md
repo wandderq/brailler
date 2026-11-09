@@ -10,12 +10,10 @@ Each Braille character contains up to 8 dots, allowing for a higher "resolution"
 
 
 ## Features
-
-- Converts PNG/JPG images into Braille-based art
+- Converts PNG/JPG images into Braille-based art (transparency is ignored)
 - Adjustable output size
-- Configurable binarization threshold for better contrast
+- Configurable dithering algorithm and binarization threshold
 - Color inversion
-- Verbose mode for processing details
 
 
 ## Installation
@@ -24,12 +22,6 @@ Install from github using pip/pipx
 pipx install git+https://github.com/wandderq/brailler@main
 ```
 
-
-## Usage
-### Basic example
-```bash
-brailler input.jpg
-```
 
 ### Specify output size
 ```bash
@@ -41,53 +33,50 @@ brailler input.jpg --resolution 100x50
 brailler input.jpg --threshold 222 
 ```
 
-### Invert colors & change resampling algorithm
+### Enable Floyd-Steinberg dithering
 ```bash
-brailler input.jpg --resampling nearest --invert
+brailler input.jpg --dither floydsteinberg
 ```
 
 ### As a library
 ```python
-from brailler import BrailleArtGenerator
+from brailler import BrailleArtGenerator, Dither
 from PIL.Image import Resampling
 
-generator = BrailleArtGenerator(
-    "/path/to/test_image.jpg"
-)
+generator = BrailleArtGenerator("/path/to/picture.jpg")
 
 art = generator.generate(
-    resolution=(80, 40),
+    resolution=(100, 50),
+    dither=Dither.ATKINSON,
+    resampling=Resampling.BICUBIC
     threshold=220,
-    resampling_algorithm=Resampling.BICUBIC,
+    invert=False,
 )
 
 print(art)
 ```
 
-
 ## Command-line arguments
 | Argument           | Description                                                 |
 |--------------------|-------------------------------------------------------------|
-| `input`            | Input image file path                                       |
-| `-r, --resolution` | Output resolution characters (format: WxH) (default: 40x18) |
-| `-t, --threshold`  | Binarization threshold (0-255) (default: 210)               |
-| `-R, --resampling` | Image resampling algorithm (default: lanczos)               |
-| `-i, --invert`     | Invert image colors                                         |
-| `-v, --verbose`    | Verbose mode (INFO and DEBUG logs)                          |
+| `input`            | input image file path        |
+| `-r, --resolution` | output resolution characters |
+| `-t, --threshold`  | binarization threshold       |
+| `-R, --resampling` | resampling algorithm         |
+| `-d, --dither`     | dithering algorithm          |
+| `-i, --invert`     | invert image colors          |
+| `-v, --verbose`    | verbose mode (INFO logs)     |
+| `--debug`          | debug features               |
 
 
 ## Requirements
-### Common
-- `python>=3.12`
-- `pillow>=12.1`
-- `colorlog>=6.10.1`
+- `Python >= 3.12`
+- `pillow >= 12.1.10`
+- `colorlog >= 6.10.1`
 
-### Build & develop
-- `ruff>=0.16.7`
-- `uv>=0.12.15`
-- `uv_build>0.11,<0.12`
+See [pyproject.toml](https://github.com/wandderq/brailler/blob/main/pyproject.toml) for more details
 
 
 ## License
-This project is licensed under the MIT License. See the [LICENSE.md](https://github.com/wandderq/brailler/blob/main/LICENSE.md) file for details
+This project is licensed under the MIT License. See the [LICENSE.md](https://github.com/wandderq/brailler/blob/main/LICENSE.md) file for details (tl;dr do whatever you want but keep the original copyright)
 

@@ -8,10 +8,9 @@ from colorlog import ColoredFormatter
 from PIL.Image import Resampling
 
 from brailler import __version__
+from brailler.const import DEFAULT_RESOLUTION, DEFAULT_THRESHOLD, Dither
 from brailler.generator import BrailleArtGenerator
 
-DEFAULT_RESOLUTION = (40, 18)
-DEFAULT_THRESHOLD = 210
 RESOLUTION_RE = re.compile(r"([0-9]+)x([0-9]+)")
 
 logger = lg.getLogger(__name__)
@@ -58,6 +57,17 @@ def _build_argparser() -> ArgumentParser:
     )
 
     argparser.add_argument(
+        "-d", "--dither",
+        type=_dither,
+        default=Dither.NONE,
+        help=(
+            "dithering algorithm "
+            "(default: none) "
+            f"(available: {','.join(d.name.lower() for d in Dither)})"
+        ),
+    )
+    
+    argparser.add_argument(
         "-i", "--invert",
         action="store_true",
         help="invert image colors",
@@ -90,14 +100,26 @@ def _resampling(name: str) -> Resampling:
     except KeyError:
         raise ArgumentTypeError from None
 
+def _dither(name: str) -> Dither:
+    try:
+        return Dither[name.upper()]
+
+    except KeyError:
+        raise ArgumentTypeError from None
+
 def _resolution(string: str) -> tuple[int, int]:
     match = RESOLUTION_RE.match(string.lower().strip())
 
     if match:
-        return (
+        resolution = (
             int(match.group(1)),
             int(match.group(2)),
         )
+
+        if resolution[0] <= 0 or resolution[1] <= 0:
+            raise ArgumentTypeError
+        
+        return resolution
 
     raise ArgumentTypeError
 
@@ -139,16 +161,17 @@ def main() -> None:
     _setup_logger(debug=args.debug, verbose=args.verbose)
 
     generator = BrailleArtGenerator(
-        image_filepath=args.input,
+        filepath=args.input,
         debug=args.debug,
     )
 
     art = generator.generate(
         resolution=args.resolution,
+        dither=args.dither,
+        resampling=args.resampling,
         threshold=args.threshold,
-        resampling_algorithm=args.resampling,
         invert=args.invert,
     )
-
+    
     sys.stdout.write(art + "\n")
     sys.stdout.flush()
