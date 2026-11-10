@@ -53,7 +53,7 @@ generator = BrailleArtGenerator("/path/to/picture.jpg")
 art = generator.generate(
     resolution=(100, 50),
     dither=Dither.ATKINSON,
-    resampling=Resampling.BICUBIC
+    resampling=Resampling.BICUBIC,
     threshold=220,
     invert=False,
 )
